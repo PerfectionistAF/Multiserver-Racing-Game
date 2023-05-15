@@ -1,0 +1,4 @@
+pygame==2.3.0
+pygame-ce==2.2.1
+pygame-gui==0.6.9
+black==23.3.0

@@ -1,5 +1,6 @@
 from socket import socket
 from socketserver import UDPServer, DatagramRequestHandler
+from weakref import WeakValueDictionary
 
 from Player import Player
 from Game import Game
@@ -12,7 +13,7 @@ class GameServer(UDPServer):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.PlayerList: dict[tuple[str, int], Player] = {}
+        self.PlayerList: WeakValueDictionary[tuple[str, int], Player] = WeakValueDictionary()
         self.gameInSetup: Game = None
 
     def verify_request(

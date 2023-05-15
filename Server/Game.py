@@ -1,5 +1,4 @@
 from time import time
-from math import sin, cos, radians
 from threading import Thread
 from socket import socket, AF_INET, SOCK_DGRAM, SO_REUSEADDR, SOL_SOCKET
 

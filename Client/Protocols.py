@@ -13,16 +13,17 @@ class GameState(Enum):
 PlayerSnapshot = tuple[int, int, int]  # x, y, deg
 GameSnapshot = list[PlayerSnapshot]
 Movement = list[int, 2]  # Direction and Angle
+Packet = tuple[GameState, int | GameSnapshot]
 
 # Helper Functions
 import pickle
 
 
-def getMovementData(data: str) -> Movement:
+def getData(data: bytes) -> int | GameSnapshot:
     return pickle.loads(data)
 
 
-def dumpGameSnapshotData(data: GameSnapshot) -> bytes:
+def dumpData(data: Packet) -> bytes:
     return pickle.dumps(data)
 
 
@@ -39,3 +40,4 @@ ETB_HIGHT = 50
 BTN_HIGHT = 50
 
 HOST, PORT = "localhost", 8888
+MAX_PLAYERS = 4

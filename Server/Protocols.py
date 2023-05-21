@@ -1,5 +1,6 @@
 # Enums
 from enum import Enum
+from typing import Any
 
 
 class GameState(Enum):
@@ -13,16 +14,17 @@ class GameState(Enum):
 PlayerSnapshot = tuple[int, int, int]  # x, y, deg
 GameSnapshot = list[PlayerSnapshot]
 Movement = list[int, 2]  # Direction and Angle
+Packet = tuple[GameState, int | Movement]  # State and Data
 
 # Helper Functions
 import pickle
 
 
-def getMovementData(data: str) -> Movement:
+def getData(data: bytes) -> Packet:
     return pickle.loads(data)
 
 
-def dumpGameSnapshotData(data: GameSnapshot) -> bytes:
+def dumpData(data: int | GameSnapshot) -> bytes:
     return pickle.dumps(data)
 
 

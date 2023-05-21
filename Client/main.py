@@ -1,7 +1,7 @@
 import pygame as pg
 from pygame_gui import UIManager, elements, UI_BUTTON_PRESSED, UI_TEXT_ENTRY_FINISHED
 
-from GameServerProxy import Game
+from GameProxy import Game
 from Protocols import *
 
 

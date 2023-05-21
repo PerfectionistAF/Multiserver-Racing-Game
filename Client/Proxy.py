@@ -14,9 +14,11 @@ from Protocols import (
 
 
 class Proxy(Thread):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, addr=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.sock = socket(AF_INET, SOCK_DGRAM)
+        if addr:
+            self.sock.bind((HOST, addr))
         self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         data = dumpData((GameState.GameSetup, 0))
         self.sock.sendto(data, (HOST, PORT))
@@ -27,7 +29,7 @@ class Proxy(Thread):
         if readyToRead:
             data, _ = self.sock.recvfrom(1024)
             if data:
-                self.LatestSnapshot = getData(data)
+                s, self.LatestSnapshot = getData(data)
                 return True
         return False
 
@@ -37,7 +39,15 @@ class Proxy(Thread):
 
     def run(self) -> None:
         sock = self.sock.dup()
-        while True:
+        ticks = 0
+        while ticks < 10:
             data, _ = sock.recvfrom(4096)
             if data:
-                self.LatestSnapshot = getData(data)
+                ticks = 0
+                packet = getData(data)
+                if packet[0] is GameState.GameEnd:
+                    packet[1]
+                    break
+                self.LatestSnapshot = packet[1]
+            else:
+                ticks = ticks + 1

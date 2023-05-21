@@ -19,7 +19,7 @@ Packet = tuple[GameState, int | GameSnapshot]
 import pickle
 
 
-def getData(data: bytes) -> int | GameSnapshot:
+def getData(data: bytes) -> Packet:
     return pickle.loads(data)
 
 

@@ -6,12 +6,12 @@ from Protocols import GAME_SIZE, Movement, GameState
 
 
 class Game:
-    def __init__(self) -> None:
+    def __init__(self, addr=None) -> None:
         self.g_players = sprite.RenderClear()
         self.map = image.load("./Sprites/Map.png").convert()
         self.map = transform.scale(self.map, GAME_SIZE)
         self.state: GameState = GameState.MainMenu
-        self.proxy = Proxy()
+        self.proxy = Proxy(addr)
 
     def addPlayer(self, id) -> None:
         newPlayer = Player(id)
@@ -21,7 +21,6 @@ class Game:
         match self.state:
             case GameState.MainMenu:
                 screen.blit(self.map, (0, 0))
-                # start chat service
                 if self.proxy.waitOtherPlayers():
                     self.state = GameState.GameSetup
             case GameState.GameSetup:
@@ -34,5 +33,9 @@ class Game:
                 self.g_players.clear(screen, self.map)
                 self.g_players.draw(screen)
                 self.proxy.move(movement)
+                if not self.proxy.is_alive():
+                    self.g_players.empty()
+                    self.state = GameState.GameEnd
             case GameState.GameEnd:
-                pass
+                self.proxy = Proxy()
+                self.state = GameState.MainMenu

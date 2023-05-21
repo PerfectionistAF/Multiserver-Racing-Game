@@ -24,7 +24,7 @@ def getData(data: bytes) -> Packet:
     return pickle.loads(data)
 
 
-def dumpData(data: int | GameSnapshot) -> bytes:
+def dumpData(data: Packet) -> bytes:
     return pickle.dumps(data)
 
 

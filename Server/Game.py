@@ -39,10 +39,13 @@ class Game(Thread):
                         self.state = GameState.GamePlay
                 case GameState.GamePlay:
                     snapshot = self._createSnapshot()
-                    data = dumpData(snapshot)
+                    data = dumpData((GameState.GamePlay,snapshot))
                     for addr in self.playerList.keys():
                         self.soc.sendto(data, addr)
                     if delta >= 90:
                         self.state = GameState.GameEnd
                 case GameState.GameEnd:
+                    data = dumpData((GameState.GameEnd, 0))
+                    for addr in self.playerList.keys():
+                        self.soc.sendto(data, addr)
                     break

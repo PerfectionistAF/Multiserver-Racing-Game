@@ -9,7 +9,7 @@ from Protocols import GameState, TICK_RATE, MAX_PLAYERS, Movement, GameSnapshot,
 class Game(Thread):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.daemon = False
+        self.daemon = True
         self.playerCount = 0
         self.state:GameState = GameState.GameSetup
         self.playerList: dict[tuple[str, int], Player] = {}

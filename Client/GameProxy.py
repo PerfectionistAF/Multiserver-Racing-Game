@@ -11,7 +11,7 @@ class Game:
         self.map = image.load("./Sprites/Map.png").convert()
         self.map = transform.scale(self.map, GAME_SIZE)
         self.state: GameState = GameState.MainMenu
-        self.proxy = Proxy(addr)
+        self.addr = addr
 
     def addPlayer(self, id) -> None:
         newPlayer = Player(id)
@@ -21,13 +21,14 @@ class Game:
         match self.state:
             case GameState.MainMenu:
                 screen.blit(self.map, (0, 0))
-                if self.proxy.waitOtherPlayers():
-                    self.state = GameState.GameSetup
+                self.proxy = Proxy(self.addr)
+                self.state = GameState.GameSetup
             case GameState.GameSetup:
-                for i in range(len(self.proxy.LatestSnapshot)):
-                    self.addPlayer(i)
-                self.proxy.start()
-                self.state = GameState.GamePlay
+                if self.proxy.waitOtherPlayers():
+                    for i in range(len(self.proxy.LatestSnapshot)):
+                        self.addPlayer(i)
+                    self.proxy.start()
+                    self.state = GameState.GamePlay
             case GameState.GamePlay:
                 self.g_players.update(self.proxy.LatestSnapshot)
                 self.g_players.clear(screen, self.map)
@@ -37,5 +38,4 @@ class Game:
                     self.g_players.empty()
                     self.state = GameState.GameEnd
             case GameState.GameEnd:
-                self.proxy = Proxy()
                 self.state = GameState.MainMenu

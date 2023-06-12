@@ -1,53 +1,82 @@
-from select import select
 from threading import Thread
-from socket import socket, AF_INET, SOCK_DGRAM, SO_REUSEADDR, SOL_SOCKET
+from selectors import DefaultSelector, EVENT_WRITE, EVENT_READ
+from socket import create_connection, socket, AF_INET, SOCK_STREAM, SOCK_DGRAM
 
-from Protocols import (
-    GameState,
-    HOST,
-    PORT,
-    Movement,
-    GameSnapshot,
-    dumpData,
-    getData,
-)
+from Protocols import *
 
 
 class Proxy(Thread):
-    def __init__(self, addr=None, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        if addr:
-            self.sock.bind((HOST, addr))
-        self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        data = dumpData((GameState.GameSetup, 0))
-        self.sock.sendto(data, (HOST, PORT))
-        self.LatestSnapshot: GameSnapshot = GameSnapshot
+    def __init__(self, addr: int = None, *args, **kwargs) -> None:
+        super().__init__(name="ServerProxy",*args, **kwargs)
+        self.addr = addr
+        self.playerCount: int = None
+        self.running = False
+        self.state = GameState.MainMenu
+        self.messagesQueue = []
+        self.movement: Movement = [0, 0]
+        self.sel = DefaultSelector()
 
-    def waitOtherPlayers(self) -> bool:
-        readyToRead, _, _ = select([self.sock], [], [], 20 / 1000)
-        if readyToRead:
-            data, _ = self.sock.recvfrom(1024)
-            if data:
-                s, self.LatestSnapshot = getData(data)
-                return True
-        return False
+    def close(self) -> None:
+        self.running = False
 
     def move(self, movement: Movement) -> None:
-        data = dumpData((GameState.GamePlay, movement))
-        self.sock.sendto(data, (HOST, PORT))
+        self.movement = movement
 
-    def run(self) -> None:
-        sock = self.sock.dup()
-        ticks = 0
-        while ticks < 10:
+    def TCPHandel(self, sock: socket, mask):
+        try:
+            data = sock.recv(4096)
+            if data:
+                packet = data.decode(errors="ignore")
+                messageType = packet[0]
+                message = packet[1:]
+                if messageType == "b":
+                    self.messagesQueue.append(message)
+                elif message == "w":
+                    winner = message
+                    self.state = GameState.GameEnd
+        except:
+            print("connection to server lost?")
+
+    def connectToServer(self, sock: socket, mask):
+        data = sock.recv(4096)
+        if data:
+            self.playerCount: int = int.from_bytes(data)
+            self.sel.modify(sock, EVENT_READ, self.TCPHandel)
+            self.LatestSnapshot: GameSnapshot = [
+                (100, 100 + i * 10, 0) for i in range(self.playerCount)
+            ]
+            self.state = GameState.GameSetup
+
+    def UDPHandle(self, sock: socket, mask):
+        if mask & EVENT_READ:
             data, _ = sock.recvfrom(4096)
             if data:
-                ticks = 0
-                packet = getData(data)
-                if packet[0] is GameState.GameEnd:
-                    packet[1]
-                    break
-                self.LatestSnapshot = packet[1]
-            else:
-                ticks = ticks + 1
+                self.LatestSnapshot = getData(data)
+        if mask & EVENT_WRITE:
+            if self.movement != [0, 0]:
+                data = dumpData(self.movement)
+                sock.sendto(data, (HOST, PORT))
+                self.movement = [0, 0]
+
+    def run(self) -> None:
+        self.running = True
+        try:
+            self.TCP_socket = create_connection(
+                address=(HOST, PORT),
+                timeout=10,
+                source_address=self.addr,
+            )
+            self.UDP_socket = socket(AF_INET, SOCK_DGRAM)
+            self.UDP_socket.bind(self.TCP_socket.getsockname())
+            self.sel.register(self.TCP_socket, EVENT_READ, self.connectToServer)
+            self.sel.register(self.UDP_socket, EVENT_READ | EVENT_WRITE, self.UDPHandle)
+        except Exception as e:
+            print("server not available")
+        while self.running:
+            events = self.sel.select()
+            for key, mask in events:
+                callback = key.data
+                callback(key.fileobj, mask)
+        self.TCP_socket.close()
+        self.UDP_socket.close()
+        self.sel.close()

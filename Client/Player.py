@@ -7,7 +7,7 @@ class Player(sprite.Sprite):
     def __init__(self, id: int) -> None:
         sprite.Sprite.__init__(self)
         self.id = id
-        self.sprite = image.load("./Sprites/Car" + str(self.id) + ".png").convert()
+        self.sprite = image.load('./Sprites/Car' + str(self.id) + '.png').convert()
         self.sprite = transform.scale(self.sprite, (20, 20))
         self.image = self.sprite
         self.rect = self.image.get_rect()

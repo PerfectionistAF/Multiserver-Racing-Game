@@ -1,7 +1,7 @@
-from GameServer import GameServer, Dispatcher
-from Protocols import HOST, PORT
+from GameServer import GameServer
 
 
-if __name__ == "__main__":
-    with GameServer((HOST, PORT), Dispatcher) as gameServer:
-        gameServer.serve_forever()
+if __name__ == '__main__':
+    gameServer = GameServer()
+    gameServer.start()
+    gameServer.close()

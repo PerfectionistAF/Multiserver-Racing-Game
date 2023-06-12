@@ -1,41 +1,52 @@
-from pygame import sprite, Surface, image, transform
+import pygame as pg
 
+from GUI import GUI
 from Proxy import Proxy
 from Player import Player
-from Protocols import GAME_SIZE, Movement, GameState
+from Protocols import *
 
 
 class Game:
-    def __init__(self, addr=None) -> None:
-        self.g_players = sprite.RenderClear()
-        self.map = image.load("./Sprites/Map.png").convert()
-        self.map = transform.scale(self.map, GAME_SIZE)
-        self.state: GameState = GameState.MainMenu
-        self.addr = addr
+    def __init__(self) -> None:
+        pg.init()
+        self.screen = pg.display.set_mode(WINDOW_SIZE)
+        self.clock = pg.time.Clock()
+        self.g_players = pg.sprite.RenderClear()
+        self.map = pg.image.load('./Sprites/Map.png').convert()
+        self.map = pg.transform.scale(self.map, GAME_SIZE)
+        self.UI = GUI()
+        self.proxy = Proxy()
 
-    def addPlayer(self, id) -> None:
-        newPlayer = Player(id)
-        self.g_players.add(newPlayer)
-
-    def update(self, screen: Surface, movement: Movement) -> None:
-        match self.state:
+    def update(self, movement: Movement) -> None:
+        time_delta = self.clock.tick(60) / 1000.0
+        match self.proxy.state:
             case GameState.MainMenu:
-                screen.blit(self.map, (0, 0))
-                self.proxy = Proxy(self.addr)
-                self.state = GameState.GameSetup
-            case GameState.GameSetup:
-                if self.proxy.waitOtherPlayers():
-                    for i in range(len(self.proxy.LatestSnapshot)):
-                        self.addPlayer(i)
+                self.screen.blit(self.map, (0, 0))
+                if self.UI.playButtonPressed:
                     self.proxy.start()
-                    self.state = GameState.GamePlay
+                    self.proxy.state = GameState.GameSetup
+            case GameState.GameSetup:
+                if self.proxy.playerCount is not None:
+                    for id in range(self.proxy.playerCount):
+                        newPlayer = Player(id)
+                        self.g_players.add(newPlayer)
+                    self.proxy.state = GameState.GamePlay
             case GameState.GamePlay:
                 self.g_players.update(self.proxy.LatestSnapshot)
-                self.g_players.clear(screen, self.map)
-                self.g_players.draw(screen)
+                self.g_players.clear(self.screen, self.map)
+                self.g_players.draw(self.screen)
                 self.proxy.move(movement)
-                if not self.proxy.is_alive():
-                    self.g_players.empty()
-                    self.state = GameState.GameEnd
             case GameState.GameEnd:
-                self.state = GameState.MainMenu
+                self.UI.playButtonPressed = False
+                self.g_players.empty()
+                self.proxy.close()
+                self.proxy = Proxy()
+        self.UI.checkMailBox(self.proxy.messagesQueue)
+        self.UI.update(self.screen, time_delta)
+        pg.display.update()
+
+    def quit(self) -> None:
+        self.proxy.close()
+        if self.proxy.ident:
+            self.proxy.join()
+        pg.quit()

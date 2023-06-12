@@ -1,51 +1,41 @@
 from time import time
 from threading import Thread
+from multiprocessing.connection import Connection
 from socket import socket, AF_INET, SOCK_DGRAM
 
 from Player import Player
-from Protocols import GameState, TICK_RATE, MAX_PLAYERS, Movement, GameSnapshot, dumpData
+from Protocols import *
 
 
-class Game(Thread):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.daemon = True
-        self.playerCount = 0
-        self.state:GameState = GameState.GameSetup
-        self.playerList: dict[tuple[str, int], Player] = {}
-        self.soc = socket(AF_INET, SOCK_DGRAM)
+def createSnapshot(AddressPlayerMap: dict[Address, Player]) -> GameSnapshot:
+    return [(player.x, player.y, player.deg) for player in AddressPlayerMap.values()]
 
-    def addPlayer(self, addr: tuple[str, int]) -> None:
-        player = Player(self.playerCount)
-        self.playerList[addr] = player
-        self.playerCount += 1
 
-    def _createSnapshot(self) -> GameSnapshot:
-        l = sorted(self.playerList.values(), key=lambda player: player.id)
-        return [(player.x, player.y, player.deg) for player in l]
+def move(AddressPlayerMap: dict[Address, Player], pipe: Connection) -> None:
+    while not pipe.closed:
+        try:
+            movement, addr = pipe.recv()
+            player = AddressPlayerMap[addr]
+            player.move(movement)
+        except EOFError:
+            pass
 
-    def move(self, movement: Movement, addr: tuple[str, int]) -> None:
-        player = self.playerList[addr]
-        player.move(movement)
 
-    def run(self) -> None:
-        gameStartTime = time()
-        while True:
-            curr = time()
-            delta = curr - gameStartTime
-            match self.state:
-                case GameState.GameSetup:
-                    if self.playerCount == MAX_PLAYERS or delta >= 30:
-                        self.state = GameState.GamePlay
-                case GameState.GamePlay:
-                    snapshot = self._createSnapshot()
-                    data = dumpData((GameState.GamePlay,snapshot))
-                    for addr in self.playerList.keys():
-                        self.soc.sendto(data, addr)
-                    if delta >= 90:
-                        self.state = GameState.GameEnd
-                case GameState.GameEnd:
-                    data = dumpData((GameState.GameEnd, 0))
-                    for addr in self.playerList.keys():
-                        self.soc.sendto(data, addr)
-                    break
+def run(playerList: list[Address], pipe: Connection) -> dict[Address, Player]:
+    AddressPlayerMap: dict[Address, Player] = {
+        itr[1]: Player(itr[0]) for itr in enumerate(playerList)
+    }
+    pipeHandler = Thread(target=move, args=(AddressPlayerMap, pipe), daemon=False)
+    pipeHandler.start()
+    soc = socket(AF_INET, SOCK_DGRAM)
+    gameStartTime = time()
+    while True:
+        data = dumpData(createSnapshot(AddressPlayerMap))
+        for addr in AddressPlayerMap:
+            soc.sendto(data, addr)
+        gameTimeDelta = time() - gameStartTime
+        if gameTimeDelta >= GAME_TIME:
+            pipe.close()
+            break
+    pipeHandler.join()
+    return AddressPlayerMap

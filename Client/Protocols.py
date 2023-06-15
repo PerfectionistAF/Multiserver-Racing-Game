@@ -10,21 +10,39 @@ class GameState(Enum):
 
 
 # Types
-PlayerSnapshot = tuple[int, int, int]  # x, y, deg
+PlayerSnapshot = list[float, float, float]  # x, y, deg
 GameSnapshot = list[PlayerSnapshot]
-Movement = list[int, 2]  # Direction and Angle
-Address = tuple[str, int] # Host and Port
+Movement = list[int, int]  # Direction and Angle
+Address = tuple[str, int]  # Host and Port
+
 
 # Helper Functions
-from pickle import loads, dumps
+from pickle import loads
 
 
 def getData(data: bytes) -> GameSnapshot:
     return loads(data)
+    # return [
+    #     [
+    #         int.from_bytes(data[(i * 4) + j : (i * 4) + j + 4], signed=True)
+    #         for i in range(3)
+    #     ]
+    #     for j in range(0, len(data), 4 * 3)
+    # ]
 
 
 def dumpData(data: Movement) -> bytes:
-    return dumps(data)
+    return b''.join(
+        [
+            int.to_bytes(data[0], signed=True),
+            int.to_bytes(data[1], signed=True),
+        ]
+    )
+
+
+def decodeMessage(data: bytes) -> tuple[str, str]:
+    message = data.decode(errors='ignore')
+    return message[0], message[1:]
 
 
 # Constants

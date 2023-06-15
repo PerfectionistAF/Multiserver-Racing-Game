@@ -8,14 +8,11 @@ from Protocols import *
 
 class Game:
     def __init__(self) -> None:
-        pg.init()
-        self.screen = pg.display.set_mode(WINDOW_SIZE)
-        self.clock = pg.time.Clock()
-        self.g_players = pg.sprite.RenderClear()
-        self.map = pg.image.load('./Sprites/Map.png').convert()
-        self.map = pg.transform.scale(self.map, GAME_SIZE)
-        self.UI = GUI()
-        self.proxy = Proxy()
+        self._initGame()
+        self.mailBoxIn = []
+        self.mailBoxOut = []
+        self.UI = GUI(self.mailBoxIn, self.mailBoxOut)
+        self.proxy = Proxy(self.mailBoxIn, self.mailBoxOut)
 
     def update(self, movement: Movement) -> None:
         time_delta = self.clock.tick(60) / 1000.0
@@ -40,8 +37,7 @@ class Game:
                 self.UI.playButtonPressed = False
                 self.g_players.empty()
                 self.proxy.close()
-                self.proxy = Proxy()
-        self.UI.checkMailBox(self.proxy.messagesQueue)
+                self.proxy = Proxy(self.mailBoxIn, self.mailBoxOut)
         self.UI.update(self.screen, time_delta)
         pg.display.update()
 
@@ -50,3 +46,11 @@ class Game:
         if self.proxy.ident:
             self.proxy.join()
         pg.quit()
+
+    def _initGame(self):
+        pg.init()
+        self.screen = pg.display.set_mode(WINDOW_SIZE)
+        self.clock = pg.time.Clock()
+        self.g_players = pg.sprite.RenderClear()
+        self.map = pg.image.load('./Sprites/Map.png').convert()
+        self.map = pg.transform.scale(self.map, GAME_SIZE)

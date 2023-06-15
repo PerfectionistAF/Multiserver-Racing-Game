@@ -31,20 +31,27 @@ class GameServer:
 
     def ChatHandler(self, sock: socket, mask) -> None:
         try:
-            message = sock.recv(4096).decode()
-            if message:
-                self.Broadcast(sock, message)
+            data = sock.recv(4096)
+            if data:
+                addr: Address = sock.getpeername()
+                if addr in self.gameFactory.PlayerPlayersMap:
+                    self.Broadcast(data.decode(), addr, self.gameFactory.getPeers(addr))
         except Exception as e:
             print(f'Error receiving message: {str(e)}')
             sock.close()
             self.gameFactory.sel.unregister(sock)
 
-    def Broadcast(self, sock: socket, message: str) -> None:
-        for client_address in self.gameFactory.getPlayers(sock.getsockname()):
-            client_socket = self.gameFactory.AddressSocketMap[client_address]
-            if client_socket != sock:
+    def Broadcast(
+        self, message: str, fromAddress: Address, toList: list[Address]
+    ) -> None:
+        for client_address in toList:
+            if (
+                client_address != fromAddress
+                and client_address in self.gameFactory.AddressSocketMap
+            ):
+                client_socket = self.gameFactory.AddressSocketMap[client_address]
                 try:
-                    client_socket.sendall(('b'+message).encode())
+                    client_socket.send(''.join(['b', message]).encode())
                 except Exception as e:
                     print(f'Error broadcasting message: {str(e)}')
                     client_socket.close()
@@ -53,17 +60,19 @@ class GameServer:
     def UDPHandler(self, sock: socket, mask) -> None:
         addr: Address
         data, addr = sock.recvfrom(4096)
-        if addr in self.gameFactory.AddressGameMap:
-            pipe = self.gameFactory.AddressGameMap[addr]
-            packet = (getData(data), addr)
-            pipe.send(packet)
+        if addr in self.gameFactory.AddressDispatchMap:
+            movement = getData(data)
+            game = self.gameFactory.AddressDispatchMap[addr]
+            game.move(movement, addr)
 
     def close(self) -> None:
         self.gameFactory.sel.close()
         self.gameFactory.close()
         self.gameFactory.join()
+        print('server closed')
 
     def start(self) -> None:
+        print('server started')
         self.gameFactory.start()
         while True:
             events = self.gameFactory.sel.select()

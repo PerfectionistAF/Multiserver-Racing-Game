@@ -1,18 +1,30 @@
 # Types
-PlayerSnapshot = tuple[int, int, int]  # x, y, deg
+PlayerSnapshot = list[float, float, float]  # x, y, deg
 GameSnapshot = list[PlayerSnapshot]
-Movement = list[int, 2]  # Direction and Angle
+Movement = list[int, int]  # Direction and Angle
 Address = tuple[str, int]  # Host and Port
 
+
 # Helper Functions
-from pickle import loads, dumps
+from pickle import dumps
+
+
+def _singed_byte(b: int):
+    return b - 256 if b >= 128 else b
 
 
 def getData(data: bytes) -> Movement:
-    return loads(data)
+    return [_singed_byte(data[0]), _singed_byte(data[1])]
 
 
 def dumpData(data: GameSnapshot) -> bytes:
+    # return b''.join(
+    #     [
+    #         int.to_bytes(i, 4, signed=True)
+    #         for playerSnapshot in data
+    #         for i in playerSnapshot
+    #     ]
+    # )
     return dumps(data)
 
 
@@ -21,7 +33,8 @@ SPEED = 5
 DEGREE = 3
 
 TICK_RATE = 30 / 1000
-GAME_TIME = 90
+GAME_TIME = 60
+QUEUE_MAX_TIME = 10
 
 HOST, PORT = 'localhost', 8888
 MAX_PLAYERS = 4

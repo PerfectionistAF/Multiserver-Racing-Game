@@ -1,88 +1,81 @@
 from time import time
-from socket import socket
 from random import randint
+from socket import socket
 from threading import Thread
-from multiprocessing import Pipe
-from multiprocessing.pool import AsyncResult, Pool
-from multiprocessing.connection import Connection
 from selectors import DefaultSelector
 
-import Game
+from Game import Game
 from Player import Player
 from Protocols import *
 
 
 class GameFactory(Thread):
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(name="GameFactory",*args, **kwargs)
+        super().__init__(name='GameFactory', *args, **kwargs)
         self.running = True
+        self.queueStartTime = float('inf')
         self.sel = DefaultSelector()
-        self.AddressGameMap: dict[Address, Connection] = {}
+        self.AddressDispatchMap: dict[Address, Game] = {}
         self.AddressSocketMap: dict[Address, socket] = {}
+        self.PlayerPlayersMap: dict[Address, list[Address]] = {}
         self.playerQueue: list[Address] = []
 
     def addPlayer(self, addr: Address) -> None:
-        if addr not in self.AddressGameMap and addr not in self.playerQueue:
+        if addr not in self.AddressDispatchMap and addr not in self.playerQueue:
+            if len(self.playerQueue) == 0:
+                self.queueStartTime = time()
             self.playerQueue.append(addr)
         else:
-            self.openGame(addr)
+            self.signalGameStart(addr)
 
-    def getPlayers(self, addr: Address) -> list[Address]:
-        players: list[Address] = []
-        playerGame = self.AddressGameMap.get(addr)
-        if playerGame:
-            players = [
-                player
-                for player, game in self.AddressGameMap.items()
-                if game == playerGame
-            ]
-        return players
+    def getPeers(self, addr: Address) -> list[Address]:
+        return self.PlayerPlayersMap[addr]
 
-    def openGame(self, *players: Address):
+    def signalGameStart(self, *players: Address):
         playerCount = len(players)
         for addr in players:
             conn = self.AddressSocketMap[addr]
             conn.send(playerCount.to_bytes(2))
 
-    def closeGame(self, result: AsyncResult[dict[Address, Player]]):
+    def gameClose(self, result: dict[Address, Player]):
         # TO-DO: implement logic to find the player with the highest score
-        winner = randint(0, len(result))
+        winner = randint(0, len(result) - 1)
+        print('Game Ended')
         for addr in result.keys():
             conn = self.AddressSocketMap[addr]
-            pipe = self.AddressGameMap[addr]
             try:
-                conn.sendall(("w" + str(winner)).encode())
-            except:
-                pass
-            self.sel.unregister(conn)
+                conn.send(''.join(['w', str(winner)]).encode())
+            except Exception as e:
+                print(f'player at {addr} cannot be reached: {e}')
             conn.close()
-            pipe.close()
-            del self.AddressGameMap[addr]
+            self.sel.unregister(conn)
             del self.AddressSocketMap[addr]
+            del self.AddressDispatchMap[addr]
+            del self.PlayerPlayersMap[addr]
+
+    def gameError(self, e: Exception):
+        print(f'Game Error: {e}')
 
     def close(self) -> None:
         self.running = False
 
     def run(self) -> None:
-        gamePool = Pool(processes=2)
-        lastGameCreated = time()
-        FORCE_START_TIMER = 10
         while self.running:
-            curr = time()
-            delta = curr - lastGameCreated
             if len(self.playerQueue) >= MAX_PLAYERS or (
-                delta >= FORCE_START_TIMER and len(self.playerQueue) > 0
+                time() - self.queueStartTime >= QUEUE_MAX_TIME
             ):
-                p1, p2 = Pipe(duplex=False)
+                print('creating game')
                 players = self.playerQueue[:MAX_PLAYERS]
                 self.playerQueue = self.playerQueue[MAX_PLAYERS:]
-                self.openGame(*players)
-                gamePool.apply_async(
-                    func=Game.run,
-                    args=(players, p1),
-                    callback=self.closeGame,
+                game = Game(
+                    playerAddresses=players,
+                    callback=self.gameClose,
+                    error_callback=self.gameError,
                 )
+                game.start()
+                dispatchers = {addr: game for addr in players}
+                self.AddressDispatchMap.update(dispatchers)
                 for addr in players:
-                    self.AddressGameMap[addr] = p2
-                lastGameCreated = time()
-        gamePool.join()
+                    self.PlayerPlayersMap[addr] = players
+                self.signalGameStart(*players)
+                self.queueStartTime = float('inf')

@@ -22,7 +22,7 @@ class Game(Thread):
 
     def createSnapshot(self) -> GameSnapshot:
         return [
-            [player.x, player.y, player.deg]
+            [player.x, player.y, player.deg, player.score]
             for player in self.AddressPlayerMap.values()
         ]
 

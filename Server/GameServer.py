@@ -58,7 +58,9 @@ class GameServer:
             game.move(movement, addr)
 
     def close(self) -> None:
-        self.gameFactory.sel.close()
+        self.running = False
+        self.TCP_socket.close()
+        self.UDP_socket.close()
         self.gameFactory.close()
         self.gameFactory.join()
         print('server closed')
@@ -66,7 +68,8 @@ class GameServer:
     def start(self) -> None:
         print('server started')
         self.gameFactory.start()
-        while True:
+        self.running = True
+        while self.running:
             events = self.gameFactory.sel.select()
             for key, mask in events:
                 callback = key.data

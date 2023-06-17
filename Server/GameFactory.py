@@ -67,6 +67,9 @@ class GameFactory(Thread):
 
     def close(self) -> None:
         self.running = False
+        for conn in self.AddressConnectionMap.values():
+            self.removePlayer(conn)
+        self.sel.close()
 
     def run(self) -> None:
         while self.running:

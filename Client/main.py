@@ -1,3 +1,4 @@
+import atexit
 import pygame as pg
 
 from GameProxy import Game
@@ -5,7 +6,7 @@ from Protocols import *
 
 
 def main():
-    game = Game()
+    global game
     running = True
     movement: Movement = [0, 0]
     while running:
@@ -41,5 +42,13 @@ def main():
     game.quit()
 
 
-if __name__ == '__main__':
+def exit_handler():
+    print("game closed abruptly")
+    global game
+    game.quit()
+
+
+if __name__ == "__main__":
+    atexit.register(exit_handler)
+    game = Game()
     main()

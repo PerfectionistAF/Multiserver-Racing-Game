@@ -15,7 +15,7 @@ class Game(Thread):
         *args,
         **kwargs
     ):
-        super().__init__(name='Game',*args, **kwargs)
+        super().__init__(name='Game', *args, **kwargs)
         self.addressList: list[Address] = playerAddresses
         self.callback = callback
         self.error_callback = error_callback

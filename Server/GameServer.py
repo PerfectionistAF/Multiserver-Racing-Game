@@ -1,5 +1,5 @@
 from selectors import EVENT_READ
-from socket import create_server, socket, AF_INET, SOCK_DGRAM
+from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM
 
 from GameFactory import GameFactory
 from Protocols import *
@@ -7,7 +7,9 @@ from Protocols import *
 
 class GameServer:
     def __init__(self) -> None:
-        self.TCP_socket = create_server(address=(HOST, PORT), family=AF_INET)
+        self.TCP_socket = socket(AF_INET, SOCK_STREAM)
+        self.TCP_socket.bind((HOST, PORT))
+        self.TCP_socket.listen()
         self.UDP_socket = socket(AF_INET, SOCK_DGRAM)
         self.UDP_socket.bind((HOST, PORT))
 
@@ -17,29 +19,19 @@ class GameServer:
 
     def TCPHandler(self, sock: socket, mask) -> None:
         client_socket, client_address = sock.accept()
-
-        if client_address not in self.gameFactory.AddressSocketMap:
-            print(f'New player from {client_address}')
-        else:
-            sock = self.gameFactory.AddressSocketMap[client_address]
-            sock.close()
-            self.gameFactory.sel.unregister(sock)
-
-        self.gameFactory.addPlayer(client_address)
-        self.gameFactory.AddressSocketMap[client_address] = client_socket
         self.gameFactory.sel.register(client_socket, EVENT_READ, self.ChatHandler)
+        self.gameFactory.AddressConnectionMap[client_address] = client_socket
+        self.gameFactory.addPlayer(client_address)
 
     def ChatHandler(self, sock: socket, mask) -> None:
         try:
             data = sock.recv(4096)
-            if data:
-                addr: Address = sock.getpeername()
-                if addr in self.gameFactory.PlayerPlayersMap:
-                    self.Broadcast(data.decode(), addr, self.gameFactory.getPeers(addr))
+            addr: Address = sock.getpeername()
+            if data and addr in self.gameFactory.PlayerPlayersMap:
+                self.Broadcast(data.decode(), addr, self.gameFactory.getPeers(addr))
         except Exception as e:
-            print(f'Error receiving message: {str(e)}')
-            sock.close()
-            self.gameFactory.sel.unregister(sock)
+            print(f'player disconnected: {e}')
+            self.gameFactory.removePlayer(sock)
 
     def Broadcast(
         self, message: str, fromAddress: Address, toList: list[Address]
@@ -47,22 +39,22 @@ class GameServer:
         for client_address in toList:
             if (
                 client_address != fromAddress
-                and client_address in self.gameFactory.AddressSocketMap
+                and client_address in self.gameFactory.AddressConnectionMap
             ):
-                client_socket = self.gameFactory.AddressSocketMap[client_address]
+                client_socket = self.gameFactory.AddressConnectionMap[client_address]
                 try:
                     client_socket.send(''.join(['b', message]).encode())
                 except Exception as e:
-                    print(f'Error broadcasting message: {str(e)}')
-                    client_socket.close()
+                    print(f'error broadcasting message: {e}')
                     self.gameFactory.sel.unregister(client_socket)
+                    client_socket.close()
 
     def UDPHandler(self, sock: socket, mask) -> None:
         addr: Address
         data, addr = sock.recvfrom(4096)
-        if addr in self.gameFactory.AddressDispatchMap:
+        game = self.gameFactory.AddressDispatchMap.get(addr)
+        if game:
             movement = getData(data)
-            game = self.gameFactory.AddressDispatchMap[addr]
             game.move(movement, addr)
 
     def close(self) -> None:

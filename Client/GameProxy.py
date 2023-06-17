@@ -36,8 +36,8 @@ class Game:
             case GameState.GameEnd:
                 self.UI.playButtonPressed = False
                 self.g_players.empty()
-                self.proxy.close()
-                self.proxy = Proxy(self.mailBoxIn, self.mailBoxOut)
+                if self.proxy.closed:
+                    self.proxy = Proxy(self.mailBoxIn, self.mailBoxOut)
         self.UI.update(self.screen, time_delta)
         pg.display.update()
 

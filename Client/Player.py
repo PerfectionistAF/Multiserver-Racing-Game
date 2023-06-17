@@ -12,11 +12,13 @@ class Player(sprite.Sprite):
         self.image = self.sprite
         self.rect = self.image.get_rect()
         self.deg = 0
+        self.score = 0
 
     def update(self, input: GameSnapshot) -> None:
-        x, y, deg = input[self.id]
+        x, y, deg, score = input[self.id]
         if deg != self.deg:
             self.deg = deg
             self.image = transform.rotate(self.sprite, deg)
             self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
+        self.score = score

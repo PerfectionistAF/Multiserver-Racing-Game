@@ -1,5 +1,5 @@
 # Types
-PlayerSnapshot = list[float, float, float]  # x, y, deg
+PlayerSnapshot = list[float, float, float, int]  # x, y, deg, score
 GameSnapshot = list[PlayerSnapshot]
 Movement = list[int, int]  # Direction and Angle
 Address = tuple[str, int]  # Host and Port

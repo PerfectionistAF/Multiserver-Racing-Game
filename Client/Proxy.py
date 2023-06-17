@@ -72,7 +72,7 @@ class Proxy(Thread):
                 self.playerCount: int = int.from_bytes(data)
                 self.sel.modify(sock, EVENT_READ | EVENT_WRITE, self.TCPHandle)
                 self.LatestSnapshot: GameSnapshot = [
-                    [100, 100 + i * 10, 0] for i in range(self.playerCount)
+                    [100, 100 + i * 10, 0, 0] for i in range(self.playerCount)
                 ]
                 self.state = GameState.GameSetup
         except Exception as e:

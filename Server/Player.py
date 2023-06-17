@@ -9,6 +9,7 @@ class Player:
         self.x = 100.0
         self.y = 100.0 + id * 10
         self.deg = 0.0
+        self.score = 0
 
     def move(self, movement: Movement) -> None:
         direction, angle = movement
@@ -19,3 +20,4 @@ class Player:
             self.deg -= 360.0
         self.x += SPEED * cos(radians(self.deg)) * direction
         self.y -= SPEED * sin(radians(self.deg)) * direction
+        self.score += 1

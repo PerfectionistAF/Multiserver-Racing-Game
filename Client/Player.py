@@ -1,5 +1,5 @@
 from pygame import sprite, image, transform
-
+import requests
 from Protocols import GameSnapshot
 
 
@@ -22,3 +22,21 @@ class Player(sprite.Sprite):
             self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.score = score
+        #request data from server
+        #dnsUrl = "firrehab.org"
+        runserverUrl = "http://127.0.0.1:8000/"
+        r = requests.get(url=runserverUrl)#url = dnsUrl)
+        data = r.json()
+        #first 5 results per instance
+        for i in range(5):
+            x = data['results'][i]
+            y = data['results'][i]
+            deg = data['results'][i]
+            score = data['results'][i]
+            print("X_COORD:", x, "\n")
+            print("Y_COORD:", y, "\n")
+            print("DEGREE:", deg, "\n")
+            print("SCORE:", score, "\n")
+
+
+

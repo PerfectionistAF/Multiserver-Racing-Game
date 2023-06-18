@@ -4,7 +4,7 @@ from socket import socket, AF_INET, SOCK_DGRAM
 
 from Player import Player
 from Protocols import *
-
+import requests
 
 class Game(Thread):
     def __init__(
@@ -21,11 +21,21 @@ class Game(Thread):
         self.error_callback = error_callback
 
     def createSnapshot(self) -> GameSnapshot:
+        #I am the form
+        runserverUrl = "http://127.0.0.1:8000/"
+        data = [player.x,
+        player.y,
+        player.deg,
+        player.score ]
+        
+        r = requests.post(url= runserverUrl, data= data )
+        url = r.text
+        print("The response URL is:%s" % url)
         return [
             [player.x, player.y, player.deg, player.score]
             for player in self.AddressPlayerMap.values()
         ]
-
+        
     def move(self, movement: Movement, addr: Address) -> None:
         player = self.AddressPlayerMap[addr]
         player.move(movement)

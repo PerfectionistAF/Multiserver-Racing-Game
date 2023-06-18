@@ -37,7 +37,7 @@ class Game(Thread):
             }
             sock = socket(AF_INET, SOCK_DGRAM)
             sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-            sock.bind((HOST, PORT))
+            sock.bind((HOST, 8885))
             gameTimeDelta = 0.0
             gameStartTime = time()
             while gameTimeDelta <= GAME_TIME:

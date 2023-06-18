@@ -29,13 +29,17 @@ class GameFactory(Thread):
                 if len(self.playerQueue) == 1:
                     self.queueStartTime = time()
             else:
+                print(f'player {addr} reconnected')
                 playerCount = len(self.PlayerPlayersMap[addr])
                 self.signalGameStart(addr, playerCount=playerCount)
 
     def removePlayer(self, sock: socket):
-        self.sel.unregister(sock)
-        sock.shutdown(SHUT_RDWR)
-        sock.close()
+        try:
+            self.sel.unregister(sock)
+            sock.shutdown(SHUT_RDWR)
+            sock.close()
+        except Exception as e:
+            print(f'connection lost:  {e}')
 
     def getPeers(self, addr: Address) -> list[Address]:
         return self.PlayerPlayersMap[addr]

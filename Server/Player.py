@@ -1,7 +1,7 @@
 from math import sin, cos, radians
 
 from Protocols import Movement, DEGREE, SPEED
-
+from Client.Protocols import GAME_SIZE, UI_SIZE, WINDOW_SIZE
 
 class Player:
     def __init__(self, id: int) -> None:
@@ -19,5 +19,13 @@ class Player:
         elif self.deg > 360.0:
             self.deg -= 360.0
         self.x += SPEED * cos(radians(self.deg)) * direction
+        if self.x > WINDOW_SIZE[0]:
+            self.x -= UI_SIZE
+        elif self.x < WINDOW_SIZE[0]:
+            self.x += UI_SIZE
         self.y -= SPEED * sin(radians(self.deg)) * direction
+        if self.y > WINDOW_SIZE[1]:
+            self.y -= UI_SIZE
+        elif self.y < WINDOW_SIZE[1]:
+            self.y += UI_SIZE
         self.score += 1

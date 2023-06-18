@@ -34,8 +34,8 @@ def getData(data: bytes) -> GameSnapshot:
 def dumpData(data: Movement) -> bytes:
     return b''.join(
         [
-            int.to_bytes(data[0], length=2, byteorder='big', signed=True),
-            int.to_bytes(data[1], length=2, byteorder='big', signed=True),
+            int.to_bytes(data[0], length=1, byteorder='big', signed=True),
+            int.to_bytes(data[1], length=1, byteorder='big', signed=True),
         ]
     )
 

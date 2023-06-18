@@ -43,9 +43,10 @@ def main():
 
 
 def exit_handler():
-    print("game closed abruptly")
     global game
-    game.quit()
+    if game.initialized:
+        print("game closed abruptly")
+        game.quit()
 
 
 if __name__ == "__main__":

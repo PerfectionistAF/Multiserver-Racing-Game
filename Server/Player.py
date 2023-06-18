@@ -13,7 +13,7 @@ class Player:
 
     def move(self, movement: Movement) -> None:
         direction, angle = movement
-        self.deg = self.deg + DEGREE * angle
+        self.deg += DEGREE * angle
         if self.deg < 0.0:
             self.deg += 360.0
         elif self.deg > 360.0:

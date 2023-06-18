@@ -1,5 +1,4 @@
 from time import sleep
-from sys import argv
 from threading import Thread
 from selectors import DefaultSelector, EVENT_WRITE, EVENT_READ
 from socket import socket, AF_INET, SOCK_STREAM, SOCK_DGRAM, SO_REUSEADDR, SOL_SOCKET
@@ -17,9 +16,7 @@ class Proxy(Thread):
     ) -> None:
         super().__init__(name='ServerProxy', *args, **kwargs)
         self._initProxy()
-        self.addr: Address = (
-            ('0.0.0.0', int(argv[1])) if len(argv) == 2 else ('0.0.0.0', 0)
-        )
+        self.addr: Address = ('0.0.0.0', PORT)
         self.mailBoxIn = mailBoxIn
         self.mailBoxOut = mailBoxOut
 
@@ -33,6 +30,7 @@ class Proxy(Thread):
             else:
                 # wait shutdown signal from server to avoid [WinError 10048]
                 sleep(3)
+                self.TCP_socket.close()
             self.UDP_socket.close()
             self.sel.close()
         self.closed = True
@@ -49,6 +47,7 @@ class Proxy(Thread):
                 self.mailBoxOut.clear()
             except Exception as e:
                 print(f'failed to send message: {e}')
+                self.close()
         if mask & EVENT_READ:
             try:
                 data = sock.recv(4096)
@@ -75,14 +74,15 @@ class Proxy(Thread):
                     [100, 100 + i * 10, 0, 0] for i in range(self.playerCount)
                 ]
                 self.state = GameState.GameSetup
+                self.UDP_socket.sendto(bytes(0), (HOST, 8885)) # hole punch the router
         except Exception as e:
             print(f'cannot connect to server: {e}')
             self.close()
 
     def UDPHandle(self, sock: socket, mask):
         if mask & EVENT_READ:
-            data, _ = sock.recvfrom(4096)
-            if data:
+            data, addr = sock.recvfrom(4096)
+            if data and addr[1] == 8885:
                 self.LatestSnapshot = getData(data)
         if mask & EVENT_WRITE:
             if self.movement != [0, 0]:

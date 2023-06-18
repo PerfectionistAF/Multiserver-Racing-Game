@@ -46,6 +46,7 @@ class Game:
         if self.proxy.ident:
             self.proxy.join()
         pg.quit()
+        self.initialized = False
 
     def _initGame(self):
         pg.init()
@@ -54,3 +55,4 @@ class Game:
         self.g_players = pg.sprite.RenderClear()
         self.map = pg.image.load('./Sprites/Map.png').convert()
         self.map = pg.transform.scale(self.map, GAME_SIZE)
+        self.initialized = True

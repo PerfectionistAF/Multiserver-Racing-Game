@@ -20,9 +20,10 @@ class GameServer:
 
     def TCPHandler(self, sock: socket, mask) -> None:
         client_socket, client_address = sock.accept()
-        self.gameFactory.sel.register(client_socket, EVENT_READ, self.ChatHandler)
-        self.gameFactory.AddressConnectionMap[client_address] = client_socket
-        self.gameFactory.addPlayer(client_address)
+        if client_address[1] == 8888:
+            self.gameFactory.sel.register(client_socket, EVENT_READ, self.ChatHandler)
+            self.gameFactory.AddressConnectionMap[client_address] = client_socket
+            self.gameFactory.addPlayer(client_address)
 
     def ChatHandler(self, sock: socket, mask) -> None:
         try:
@@ -52,11 +53,15 @@ class GameServer:
 
     def UDPHandler(self, sock: socket, mask) -> None:
         addr: Address
-        data, addr = sock.recvfrom(4096)
-        game = self.gameFactory.AddressDispatchMap.get(addr)
-        if game:
-            movement = getData(data)
-            game.move(movement, addr)
+        try:
+            data, addr = sock.recvfrom(4096)
+            if data and addr[1] == 8888:
+                game = self.gameFactory.AddressDispatchMap.get(addr)
+                if game:
+                    movement = getData(data)
+                    game.move(movement, addr)
+        except Exception as e:
+            print(f'error while receiving data: {e}')
 
     def close(self) -> None:
         self.running = False

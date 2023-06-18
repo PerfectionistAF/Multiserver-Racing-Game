@@ -1,5 +1,5 @@
 from selectors import EVENT_READ
-from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_DGRAM, SOCK_STREAM, SO_REUSEADDR, SOL_SOCKET
 
 from GameFactory import GameFactory
 from Protocols import *
@@ -11,6 +11,7 @@ class GameServer:
         self.TCP_socket.bind((HOST, PORT))
         self.TCP_socket.listen()
         self.UDP_socket = socket(AF_INET, SOCK_DGRAM)
+        self.UDP_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.UDP_socket.bind((HOST, PORT))
 
         self.gameFactory = GameFactory()

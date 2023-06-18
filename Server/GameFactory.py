@@ -44,7 +44,7 @@ class GameFactory(Thread):
         for addr in players:
             conn = self.AddressConnectionMap.get(addr)
             if conn:
-                conn.send(playerCount.to_bytes(2))
+                conn.send(playerCount.to_bytes(length=2, byteorder='big', signed=False))
 
     def gameClose(self, result: dict[Address, Player]):
         # TO-DO: implement logic to find the player with the highest score

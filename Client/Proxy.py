@@ -18,7 +18,7 @@ class Proxy(Thread):
         super().__init__(name='ServerProxy', *args, **kwargs)
         self._initProxy()
         self.addr: Address = (
-            ('localhost', int(argv[1])) if len(argv) == 2 else ('localhost', 0)
+            ('0.0.0.0', int(argv[1])) if len(argv) == 2 else ('0.0.0.0', 0)
         )
         self.mailBoxIn = mailBoxIn
         self.mailBoxOut = mailBoxOut
@@ -69,7 +69,7 @@ class Proxy(Thread):
         try:
             data = sock.recv(4096)
             if data:
-                self.playerCount: int = int.from_bytes(data)
+                self.playerCount: int = int.from_bytes(data, byteorder='big', signed=False)
                 self.sel.modify(sock, EVENT_READ | EVENT_WRITE, self.TCPHandle)
                 self.LatestSnapshot: GameSnapshot = [
                     [100, 100 + i * 10, 0, 0] for i in range(self.playerCount)

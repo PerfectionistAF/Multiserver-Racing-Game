@@ -34,8 +34,8 @@ def getData(data: bytes) -> GameSnapshot:
 def dumpData(data: Movement) -> bytes:
     return b''.join(
         [
-            int.to_bytes(data[0], signed=True),
-            int.to_bytes(data[1], signed=True),
+            int.to_bytes(data[0], length=2, byteorder='big', signed=True),
+            int.to_bytes(data[1], length=2, byteorder='big', signed=True),
         ]
     )
 
@@ -57,5 +57,5 @@ CTB_HIGHT = 500
 ETB_HIGHT = 50
 BTN_HIGHT = 50
 
-HOST, PORT = 'localhost', 8888
+HOST, PORT = '13.51.142.74', 8888
 MAX_PLAYERS = 4

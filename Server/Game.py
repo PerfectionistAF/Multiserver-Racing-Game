@@ -1,6 +1,6 @@
 from time import time
 from threading import Thread
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket, SO_REUSEADDR, SOL_SOCKET, AF_INET, SOCK_DGRAM
 
 from Player import Player
 from Protocols import *
@@ -35,13 +35,15 @@ class Game(Thread):
             self.AddressPlayerMap: dict[Address, Player] = {
                 addr: Player(id) for id, addr in enumerate(self.addressList)
             }
-            soc = socket(AF_INET, SOCK_DGRAM)
+            sock = socket(AF_INET, SOCK_DGRAM)
+            sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+            sock.bind((HOST, PORT))
             gameTimeDelta = 0.0
             gameStartTime = time()
             while gameTimeDelta <= GAME_TIME:
                 data = dumpData(self.createSnapshot())
                 for addr in self.addressList:
-                    soc.sendto(data, addr)
+                    sock.sendto(data, addr)
                 gameTimeDelta = time() - gameStartTime
             if self.callback:
                 self.callback(self.AddressPlayerMap)

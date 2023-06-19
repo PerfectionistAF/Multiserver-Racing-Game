@@ -1,8 +1,6 @@
-#<<<<<<< HEAD
 from math import sin, cos, radians
 
 from Protocols import Movement, DEGREE, SPEED
-#from Client.Protocols import GAME_SIZE, UI_SIZE, WINDOW_SIZE
 import sqlite3
 
 class Player:
@@ -30,6 +28,6 @@ class Player:
         #SQLITE 3 DB
         db = sqlite3.connect('move.sqlite')
         db.execute('CREATE TABLE IF NOT EXISTS Server_Players(Server_ID INTEGER, Client_ID INTEGER, X INTEGER, Y INTEGER, DEGREE INTEGER)')
-        db.execute("INSERT INTO Server_Players(Server_ID, Client_ID, X, Y, DEGREE) VALUES('1'", self.id, self.x.get(), self.y.get(), self.deg.get())
-        db.connection.commit()
+        db.execute(f"INSERT INTO Server_Players(Server_ID, Client_ID, X, Y, DEGREE) VALUES('1', {self.id}, {self.x}, {self.y}, {self.deg})")
+        db.commit()
         db.close()

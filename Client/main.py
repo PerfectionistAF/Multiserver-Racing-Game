@@ -1,4 +1,3 @@
-#<<<<<<< HEAD
 import atexit
 import pygame as pg
 #import sqlite3

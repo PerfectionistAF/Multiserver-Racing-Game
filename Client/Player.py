@@ -1,6 +1,6 @@
-from pygame import sprite, image, transform
+from pygame import sprite, image, transform, Color
 
-from Protocols import GameSnapshot
+from Protocols import GameSnapshot, COLORS
 
 
 class Player(sprite.Sprite):
@@ -13,6 +13,7 @@ class Player(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.deg = 0
         self.score = 0
+        self.color = Color(COLORS[self.id])
 
     def update(self, input: GameSnapshot) -> None:
         x, y, deg, score = input[self.id]

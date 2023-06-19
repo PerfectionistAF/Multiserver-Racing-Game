@@ -1,5 +1,5 @@
 import pygame_gui as gui
-from pygame import Rect
+from pygame import Rect, Color
 
 from Protocols import *
 
@@ -49,7 +49,7 @@ class GUI:
             else:
                 self.playButtonPressed = True
         if event.type == gui.UI_TEXT_ENTRY_FINISHED and self.playButtonPressed:
-                self.sendMessage()
+            self.sendMessage()
         self.manager.process_events(event)
 
     def sendMessage(self):
@@ -60,5 +60,7 @@ class GUI:
 
     def readMail(self) -> None:
         for message in self.mailBoxIn:
-            self.chat_text_box.append_html_text(message + '\n')
+            self.chat_text_box.append_html_text(
+                f'<font color={COLORS[int(message[0])]}>{message[1:]}</font>' + '\n'
+            )
         self.mailBoxIn.clear()

@@ -38,6 +38,7 @@ class GameServer:
     def Broadcast(
         self, message: str, fromAddress: Address, toList: list[Address]
     ) -> None:
+        sender = toList.index(fromAddress)
         for client_address in toList:
             if (
                 client_address != fromAddress
@@ -45,7 +46,7 @@ class GameServer:
             ):
                 client_socket = self.gameFactory.AddressConnectionMap[client_address]
                 try:
-                    client_socket.send(''.join(['b', message]).encode())
+                    client_socket.send(''.join(['b', str(sender), message]).encode())
                 except Exception as e:
                     print(f'error broadcasting message: {e}')
                     self.gameFactory.sel.unregister(client_socket)

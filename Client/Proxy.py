@@ -28,7 +28,7 @@ class Proxy(Thread):
             if self.state is not GameState.GameEnd:
                 self.TCP_socket.detach()
             else:
-                # wait shutdown signal from server to avoid [WinError 10048]
+                # wait shutdown signal from server to avoid TIME_WAIT
                 sleep(3)
                 self.TCP_socket.close()
             self.UDP_socket.close()
@@ -56,8 +56,7 @@ class Proxy(Thread):
                     if messageType == 'b':
                         self.mailBoxIn.append(message)
                     elif messageType == 'w':
-                        winner = message
-                        print(f'THE WINNER IS : {winner}')
+                        self.winner = int(message)
                         self.state = GameState.GameEnd
                         self.close()
             except Exception as e:

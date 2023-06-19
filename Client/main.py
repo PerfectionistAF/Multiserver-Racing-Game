@@ -45,11 +45,11 @@ def main():
 def exit_handler():
     global game
     if game.initialized:
-        print("game closed abruptly")
+        print('game closed abruptly')
         game.quit()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     atexit.register(exit_handler)
     game = Game()
     main()

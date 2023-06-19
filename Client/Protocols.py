@@ -9,8 +9,19 @@ class GameState(Enum):
     GameEnd = 3
 
 
+from pygame import Color
+
+
+COLORS: tuple[str] = (
+    '#e10909',  # Red
+    '#3a749a',  # Blue
+    '#16ad27',  # Green
+    '#eadf05',  # Yellow
+)
+
+
 # Types
-PlayerSnapshot = list[float, float, float]  # x, y, deg
+PlayerSnapshot = list[float, float, float, int]  # x, y, deg, score
 GameSnapshot = list[PlayerSnapshot]
 Movement = list[int, int]  # Direction and Angle
 Address = tuple[str, int]  # Host and Port
@@ -59,3 +70,6 @@ BTN_HIGHT = 50
 
 HOST, PORT = '13.51.142.74', 8888
 MAX_PLAYERS = 4
+
+TEXT_SIZE = 30
+TEXT_SPACE = (GAME_SIZE[0] - (MAX_PLAYERS * TEXT_SIZE)) / (MAX_PLAYERS + 1)

@@ -22,7 +22,7 @@ class Game(Thread):
 
     def createSnapshot(self) -> GameSnapshot:
         #I am the form
-        runserverUrl = "http://127.0.0.1:8000/"
+        '''runserverUrl = "http://127.0.0.1:8000/"
         data = [player.x,
         player.y,
         player.deg,
@@ -30,7 +30,7 @@ class Game(Thread):
         
         r = requests.post(url= runserverUrl, data= data )
         url = r.text
-        print("The response URL is:%s" % url)
+        print("The response URL is:%s" % url)'''
         return [
             [player.x, player.y, player.deg, player.score]
             for player in self.AddressPlayerMap.values()

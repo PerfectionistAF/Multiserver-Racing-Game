@@ -2,6 +2,7 @@ from math import sin, cos, radians
 
 from Protocols import Movement, DEGREE, SPEED
 from Client.Protocols import GAME_SIZE, UI_SIZE, WINDOW_SIZE
+import sqlite3
 
 class Player:
     def __init__(self, id: int) -> None:
@@ -29,3 +30,8 @@ class Player:
         elif self.y < WINDOW_SIZE[1]:
             self.y += UI_SIZE
         self.score += 1
+        #SQLITE 3 DB
+        #Server id =1
+        #Case: SERVER.PLAYER 
+        #Player state = GameState
+        #Player id

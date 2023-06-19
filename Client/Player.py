@@ -1,7 +1,7 @@
 from pygame import sprite, image, transform
 import requests
 from Protocols import GameSnapshot
-
+import sqlite3
 
 class Player(sprite.Sprite):
     def __init__(self, id: int) -> None:
@@ -22,9 +22,20 @@ class Player(sprite.Sprite):
             self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.score = score
+        #SQLITE 3 DB
+        #Server id =1
+        #Case: CLIENT.PLAYER
+        #Player state = GameState
+        #Player id 
+        db = sqlite3.connect('update.sqlite')
+        db.execute('CREATE TABLE IF NOT EXISTS Client_Players(Server_ID INTEGER, Client_ID INTEGER, X INTEGER, Y INTEGER, DEGREE INTEGER)')
+        db.execute('INSERT into ')
+
+
+
         #request data from server
         #dnsUrl = "firrehab.org"
-        runserverUrl = "http://127.0.0.1:8000/"
+        '''runserverUrl = "http://127.0.0.1:8000/"
         r = requests.get(url=runserverUrl)#url = dnsUrl)
         data = r.json()
         #first 5 results per instance
@@ -36,7 +47,8 @@ class Player(sprite.Sprite):
             print("X_COORD:", x, "\n")
             print("Y_COORD:", y, "\n")
             print("DEGREE:", deg, "\n")
-            print("SCORE:", score, "\n")
-
+            print("SCORE:", score, "\n")'''
+  
+         
 
 

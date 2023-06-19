@@ -35,3 +35,9 @@ class Player:
         #Case: SERVER.PLAYER 
         #Player state = GameState
         #Player id
+        #SQLITE 3 DB
+        db = sqlite3.connect('move.sqlite')
+        db.execute('CREATE TABLE IF NOT EXISTS Server_Players(Server_ID INTEGER, Client_ID INTEGER, X INTEGER, Y INTEGER, DEGREE INTEGER)')
+        db.execute("INSERT INTO Server_Players(Server_ID, Client_ID, X, Y, DEGREE) VALUES('1'", self.id.get(), self.x.get(), self.y.get(), self.deg.get())
+        db.connection.commit()
+        db.close()

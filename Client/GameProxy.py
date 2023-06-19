@@ -45,11 +45,11 @@ class Game:
 
     def updateScores(self) -> pg.Surface:
         player: Player
+        self.screen.blit(self.map, (0, 0), (0, 0, GAME_SIZE[0], TEXT_SIZE))
         for i, player in enumerate(self.g_players):
             text = self.scoreDrawer.render(
                 '{:04}'.format(player.score), True, player.color
             )
-            self.screen.blit(self.map, (0, 0), (0, 0, GAME_SIZE[0], TEXT_SIZE))
             self.screen.blit(text, (TEXT_SPACE * i, 0))
 
     def viewWinner(self, winner: int):

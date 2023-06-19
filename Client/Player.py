@@ -23,10 +23,6 @@ class Player(sprite.Sprite):
         self.rect.topleft = (x, y)
         self.score = score
         #SQLITE 3 DB
-        #Server id =1
-        #Case: CLIENT.PLAYER
-        #Player state = GameState
-        #Player id 
         db = sqlite3.connect('update.sqlite')
         db.execute('CREATE TABLE IF NOT EXISTS Client_Players(Server_ID INTEGER, Client_ID INTEGER, X INTEGER, Y INTEGER, DEGREE INTEGER)')
         db.execute("INSERT INTO Client_Players(Server_ID, Client_ID, X, Y, DEGREE) VALUES('1'", self.id.get(), x.get(), y.get(), deg.get())

@@ -1,3 +1,4 @@
+#<<<<<<< HEAD
 from pygame import sprite, image, transform
 import requests
 from Protocols import GameSnapshot
@@ -44,7 +45,3 @@ class Player(sprite.Sprite):
             print("Y_COORD:", y, "\n")
             print("DEGREE:", deg, "\n")
             print("SCORE:", score, "\n")'''
-  
-         
-
-

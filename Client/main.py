@@ -1,6 +1,5 @@
 import atexit
 import pygame as pg
-#import sqlite3
 
 from GameProxy import Game
 from Protocols import *

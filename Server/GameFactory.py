@@ -1,5 +1,4 @@
 from time import time
-from random import randint
 from socket import socket, SHUT_RDWR
 from threading import Thread
 from selectors import DefaultSelector
@@ -51,14 +50,16 @@ class GameFactory(Thread):
                 conn.send(playerCount.to_bytes(length=2, byteorder='big', signed=False))
 
     def gameClose(self, result: dict[Address, Player]):
-        # TO-DO: implement logic to find the player with the highest score
-        winner = randint(0, len(result) - 1)
+        winner: Player
+        for player in result.values():
+            if winner is None or player.score > winner.score:
+                winner = player
         for addr in result.keys():
             print(f'Game Ended for {addr}')
             conn = self.AddressConnectionMap.get(addr)
             if conn:
                 try:
-                    conn.send(''.join(['w', str(winner)]).encode())
+                    conn.send(''.join(['w', str(winner.id)]).encode())
                 except Exception as e:
                     print(f'player at {addr} cannot be reached: {e}')
                 self.removePlayer(conn)
